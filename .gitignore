@@ -1,0 +1,21 @@
+/.env
+
+# Build output
+/go/bin/*
+!/go/bin/.gitkeep
+/.gocache/
+
+# Python environments and caches
+.venv
+__pycache__/
+*.py[cod]
+
+# Downloaded model files
+/models/*
+!/models/.gitkeep
+
+# Local/editor 
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
