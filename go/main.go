@@ -2,7 +2,6 @@ package main
 
 import (
 	"atlas/config"
-	"atlas/server"
 	"context"
 	"log"
 
@@ -20,19 +19,5 @@ func main() {
 	_, err = pgxpool.New(context.Background(), cfg.POSTGRES_URL)
 	if err != nil {
 		log.Fatal("Failed to connect to the database:", err)
-	}
-
-	// Create a new SQLC store instance for interacting with the database
-	// store := db.NewStore(conn)
-
-	// Initialize a new HTTP server with all required dependencies (config, store, auth, etc.)
-	server, err := server.NewServer(cfg /*store*/)
-	if err != nil {
-		log.Fatal("Failed to create new server:", err)
-	}
-
-	// Start the HTTP server on the specified port
-	if err := server.Start(cfg.Port); err != nil {
-		log.Fatal("Failed to start server:", err)
 	}
 }
