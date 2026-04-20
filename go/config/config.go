@@ -5,9 +5,11 @@ import (
 )
 
 type Config struct {
-	QdrantURL    string `mapstructure:"QDRANT_URL"`
-	POSTGRES_URL string `mapstructure:"POSTGRES_URL"`
-	Port         string `mapstructure:"PORT"`
+	QdrantURL         string `mapstructure:"QDRANT_URL"`
+	POSTGRES_URL      string `mapstructure:"POSTGRES_URL"`
+	Port              string `mapstructure:"GO_PORT"`
+	OllamaURL         string `mapstructure:"OLLAMA_URL"`
+	OllamaIntentModel string `mapstructure:"OLLAMA_INTENT_MODEL"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
@@ -24,6 +26,6 @@ func LoadConfig(path string) (config Config, err error) {
 	}
 	err = viper.Unmarshal(&config)
 
-	return
+	return config, err
 
 }

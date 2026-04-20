@@ -3,7 +3,7 @@
 # Build output
 /go/bin/*
 !/go/bin/.gitkeep
-/.gocache/
+.gocache
 
 # Python environments and caches
 .venv
@@ -19,3 +19,7 @@ __pycache__/
 Thumbs.db
 .idea/
 .vscode/
+
+
+# Ignore ONNX model files
+*.onnx*
