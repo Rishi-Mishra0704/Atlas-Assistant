@@ -33,14 +33,3 @@ func (t *OpenAppTool) Execute(ctx context.Context, input string) error {
 
 	return t.resolver.Open(resolved)
 }
-
-type BrowserTool struct{}
-
-func (t *BrowserTool) Name() string {
-	return "open_browser"
-}
-
-func (t *BrowserTool) Execute(ctx context.Context, input string) error {
-	cmd := exec.Command("cmd", "/c", "start", "https://google.com")
-	return cmd.Start()
-}

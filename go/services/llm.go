@@ -232,16 +232,23 @@ Only describe what to do, never output shell commands.
 
 Return JSON:
 {
-  "action": "open_app",
-  "target": "the app name the user wants"
+  "action": "open_app" or "open_browser",
+  "target": "what the user wants"
 }
 
 Rules:
-- action is ALWAYS "open_app". No exceptions. Never use open_url, open_discord, launch_game, or anything else.
-- target is the app name the user said, nothing more
+- "open_browser" for: Chrome, searching, browsing, opening websites, URLs, googling
+- "open_app" for: everything else (Notepad, Discord, Steam, VS Code, etc)
+- Chrome is ALWAYS "open_browser", NEVER "open_app"
+- For open_browser: target is ONLY the search query or URL, never include "Chrome" or "Google Chrome" in target
+- For open_app: target is the app name
 - Return ONLY valid JSON
 
-`
+Examples:
+- "search for mechanical keyboards" → {"action": "open_browser", "target": "mechanical keyboards"}
+- "open chrome and search for cats" → {"action": "open_browser", "target": "cats"}
+- "open google chrome" → {"action": "open_browser", "target": ""}
+- "open discord" → {"action": "open_app", "target": "discord"}`
 
 	payload := map[string]any{
 		"user_text": userText,
@@ -317,7 +324,6 @@ func isExplicitClose(text string) bool {
 		strings.Contains(t, "exit") ||
 		strings.Contains(t, "stop")
 }
-
 func isToolIntent(intent string, text string) bool {
 	intent = strings.ToLower(intent)
 	text = strings.ToLower(text)
@@ -325,9 +331,15 @@ func isToolIntent(intent string, text string) bool {
 	return strings.Contains(intent, "open") ||
 		strings.Contains(intent, "launch") ||
 		strings.Contains(intent, "run") ||
+		strings.Contains(intent, "search") ||
+		strings.Contains(intent, "browse") ||
+		strings.Contains(intent, "google") ||
 		strings.Contains(text, "open") ||
 		strings.Contains(text, "launch") ||
-		strings.Contains(text, "run")
+		strings.Contains(text, "run") ||
+		strings.Contains(text, "search for") ||
+		strings.Contains(text, "google") ||
+		strings.Contains(text, "browse")
 }
 
 func isCloseIntent(intent string, text string) bool {

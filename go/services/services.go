@@ -11,6 +11,6 @@ func NewService(cfg config.Config) *Service {
 	resolver := NewAppResolver()
 	return &Service{
 		LLM:  NewLLMService(cfg.OllamaURL, cfg.OllamaIntentModel),
-		Tool: NewToolExecutor(resolver),
+		Tool: NewToolExecutor(resolver, cfg),
 	}
 }
