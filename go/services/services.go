@@ -8,8 +8,9 @@ type Service struct {
 }
 
 func NewService(cfg config.Config) *Service {
+	resolver := NewAppResolver()
 	return &Service{
 		LLM:  NewLLMService(cfg.OllamaURL, cfg.OllamaIntentModel),
-		Tool: NewToolExecutor(),
+		Tool: NewToolExecutor(resolver),
 	}
 }

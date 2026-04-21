@@ -10,12 +10,12 @@ type toolExecutor struct {
 	tools map[string]Tool
 }
 
-func NewToolExecutor() ToolExecutor {
+func NewToolExecutor(resolver AppResolver) ToolExecutor {
 	executor := &toolExecutor{
 		tools: make(map[string]Tool),
 	}
 
-	executor.register(&VSCodeTool{})
+	executor.register(&OpenAppTool{resolver: resolver})
 	executor.register(&BrowserTool{})
 
 	return executor
@@ -28,7 +28,7 @@ func (s *toolExecutor) register(tool Tool) {
 func (s *toolExecutor) Execute(ctx context.Context, toolName string, input string) error {
 	tool, exists := s.tools[toolName]
 	if !exists {
-		return nil // or log unknown tool
+		return nil
 	}
 
 	return tool.Execute(ctx, input)

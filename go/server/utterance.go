@@ -35,14 +35,15 @@ func (s *Server) HandleSpeech(ctx echo.Context) error {
 
 	// ---- Tool Execution (deterministic) ----
 	if decision.Route == "tool" {
-		tool := utils.DetectToolFromText(req.Text)
-
-		if tool == "" {
-			log.Printf("No tool detected from text: %s", req.Text)
+		cmd, err := s.services.LLM.GenerateCommand(ctx.Request().Context(), req.Text, decision)
+		if err != nil {
+			log.Printf("Failed to generate command: %v", err)
 			decision.Route = "chat"
 		} else {
-			log.Printf("Executing tool: %s", tool)
-			_ = s.services.Tool.Execute(ctx.Request().Context(), tool, req.Text)
+			log.Printf("Executing: %s → %s", cmd.Action, cmd.Target)
+			if execErr := s.services.Tool.Execute(ctx.Request().Context(), cmd.Action, cmd.Target); execErr != nil {
+				log.Printf("Tool execution failed: %v", execErr)
+			}
 		}
 	}
 

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
 )
 
@@ -10,15 +11,27 @@ type Tool interface {
 	Execute(ctx context.Context, input string) error
 }
 
-type VSCodeTool struct{}
-
-func (t *VSCodeTool) Name() string {
-	return "open_vscode"
+type OpenAppTool struct {
+	resolver AppResolver
 }
 
-func (t *VSCodeTool) Execute(ctx context.Context, input string) error {
-	cmd := exec.Command("cmd", "/c", "start", "", "code")
-	return cmd.Start()
+func (t *OpenAppTool) Name() string {
+	return "open_app"
+}
+
+func (t *OpenAppTool) Execute(ctx context.Context, input string) error {
+	if !IsSafeApp(input) {
+		return fmt.Errorf("blocked: %s is not allowed", input)
+	}
+
+	resolved, err := t.resolver.Resolve(input)
+	if err != nil {
+		// No shortcut found — try as a direct command
+		cmd := exec.Command("cmd", "/c", "start", "", input)
+		return cmd.Start()
+	}
+
+	return t.resolver.Open(resolved)
 }
 
 type BrowserTool struct{}

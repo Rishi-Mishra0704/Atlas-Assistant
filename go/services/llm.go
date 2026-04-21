@@ -24,11 +24,19 @@ const (
 	IntentRouteClose = "close"
 )
 
+// ---- types ----
+
+type ToolCommand struct {
+	Action string `json:"action"`
+	Target string `json:"target"`
+}
+
 // ---- interface ----
 
 type ILLMService interface {
 	DecideIntent(ctx context.Context, text string) (IntentDecision, error)
 	GenerateReply(ctx context.Context, userText string, decision IntentDecision) (string, error)
+	GenerateCommand(ctx context.Context, userText string, decision IntentDecision) (ToolCommand, error)
 }
 
 // ---- constructor ----
@@ -210,6 +218,70 @@ Rules:
 	}
 
 	return strings.TrimSpace(ollamaResp.Response), nil
+}
+
+//
+// ---------------- TIER 2b: COMMAND EXTRACTION ----------------
+//
+
+func (c *llmService) GenerateCommand(ctx context.Context, userText string, decision IntentDecision) (ToolCommand, error) {
+	system := `You are Atlas's command extractor.
+
+Given the user text and intent, return a structured JSON command.
+Only describe what to do, never output shell commands.
+
+Return JSON:
+{
+  "action": "open_app",
+  "target": "the app name the user wants"
+}
+
+Rules:
+- action is ALWAYS "open_app". No exceptions. Never use open_url, open_discord, launch_game, or anything else.
+- target is the app name the user said, nothing more
+- Return ONLY valid JSON
+
+`
+
+	payload := map[string]any{
+		"user_text": userText,
+		"intent":    decision.Intent,
+	}
+	input, _ := json.Marshal(payload)
+
+	req := map[string]any{
+		"model":      "llama3.1:8b",
+		"system":     system,
+		"prompt":     string(input),
+		"stream":     false,
+		"format":     "json",
+		"keep_alive": "10m",
+	}
+
+	body, _ := json.Marshal(req)
+
+	httpReq, _ := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/api/generate", bytes.NewReader(body))
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(httpReq)
+	if err != nil {
+		return ToolCommand{}, err
+	}
+	defer resp.Body.Close()
+
+	var ollamaResp struct {
+		Response string `json:"response"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&ollamaResp); err != nil {
+		return ToolCommand{}, err
+	}
+
+	var cmd ToolCommand
+	if err := json.Unmarshal([]byte(ollamaResp.Response), &cmd); err != nil {
+		return ToolCommand{}, err
+	}
+
+	return cmd, nil
 }
 
 // ---------------- NORMALIZATION ----------------
